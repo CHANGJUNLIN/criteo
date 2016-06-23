@@ -1,0 +1,67 @@
+<script type="text/javascript">
+    {if $pageName == 'cartView'}
+    var products_list = [];
+    products_list.push(
+        {foreach from=$LuluOrder item=order name=foo}
+        {if $smarty.foreach.foo.index > 0},{/if}
+        {if $order.subject == 'tour'}
+            {literal}{{/literal} id: "{$order.subject_id}", price: {$order.data.prices.minprice.USD}, quantity: 1 {literal}}{/literal}
+        {elseif $order.subject == 'activity'}
+            {literal}{{/literal} id: "{$order.subject_id + 400000}", price: {$order.data.prices.minprice.USD}, quantity: 1 {literal}}{/literal}
+        {elseif $order.subject == 'packagetour'}
+            {literal}{{/literal} id: "{$order.subject_id + 800000}", price: {$order.prices.price.USD}, quantity: 1 {literal}}{/literal}
+        {/if}
+        {/foreach}
+        /* #add a line for each item in the user's cart# */
+    );
+    {elseif $pageName == 'paySuccess'}
+    var products_list = [];
+    products_list.push(
+        {foreach from=$Order.tours item=value name=foo}
+            {if $smarty.foreach.foo.index > 0},{/if}
+            {literal}{{/literal} id: "{$value.tourcode}", price: {$value.bkamt_USD}, quantity: 1 {literal}}{/literal}
+        {/foreach}
+        {if $Order.packageTours && $Order.tours},{/if}
+        {foreach from=$Order.packageTours item=value name=foo}
+            {if $smarty.foreach.foo.index > 0},{/if}
+            {literal}{{/literal} id: "{$value.packid + 800000}", price: {$value.poamount_USD}, quantity: 1 {literal}}{/literal}
+        {/foreach}
+        {if $Order.activities && ($Order.packageTours || $Order.tours)},{/if}
+        {foreach from=$Order.activities item=value name=foo}
+            {if $smarty.foreach.foo.index > 0},{/if}
+            {literal}{{/literal} id: "{$value.actid + 400000}", price: {$value.aoamount_USD}, quantity: 1 {literal}}{/literal}
+        {/foreach}
+        /* #add a line for each item in the user's cart# */
+        );
+    {/if}
+    var dataLayer = dataLayer || [];
+    dataLayer.push({literal}{{/literal}
+        {if $pageName == 'home'}
+            //首页
+            'PageType': 'Homepage',
+            'HashedEmail': '{md5($CurrentUser.email)}'
+        {elseif in_array($pageName, array('tourList', 'actsList', 'priToursList'))}
+            //列表页：旅行团，自由行，包团
+            'PageType': 'Listingpage',
+            'HashedEmail': '{md5($CurrentUser.email)}',
+            'ProductIDList': {$productIds}
+        {elseif in_array($pageName, array('tourView', 'actView', 'priTourView'))}
+            //详情页
+            'PageType': 'Productpage',
+            'HashedEmail': '{md5($CurrentUser.email)}',
+            'ProductID': '{$productId}'
+        {elseif $pageName == 'cartView'}
+            //购物车
+            'PageType': 'Basketpage',
+            'HashedEmail': '{md5($CurrentUser.email)}',
+            'ProductBasketProducts': products_list
+        {elseif $pageName == 'paySuccess'}
+            //支付成功页面
+            'PageType': 'Transactionpage',
+            'HashedEmail': '{md5($CurrentUser.email)}',
+            'ProductTransactionProducts': products_list,
+            'TransactionID': '{$Order.orderconf}'
+        {/if}
+    {literal}
+    });
+</script>
